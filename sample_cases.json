@@ -1,0 +1,14 @@
+[
+  {
+    "id": "case-01",
+    "jd": "Senior Backend Engineer\n\nWe are looking for a Senior Backend Engineer with 5+ years of experience in Node.js, Express, MongoDB, and microservices architecture. You will design and scale high-throughput REST APIs, implement caching with Redis, and mentor junior engineers.\n\nRequirements:\n- 5+ years with Node.js and Express\n- Strong experience with MongoDB and Redis\n- System design & distributed architecture\n- Mentoring junior developers (nice to have)",
+    "company_url": "https://posthog.com",
+    "days": 5
+  },
+  {
+    "id": "case-02",
+    "jd": "Frontend Developer\nReact, TypeScript, Tailwind CSS.",
+    "company_url": "https://invalid-non-existent-company-domain-999.com",
+    "days": 3
+  }
+]

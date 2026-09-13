@@ -1,0 +1,309 @@
+{
+  "version": "1.0",
+  "generated_at": "2026-09-13T12:00:35.739Z",
+  "kits": [
+    {
+      "id": "case-01",
+      "status": "ok",
+      "kit": {
+        "source": {
+          "company": "posthog.com",
+          "company_url": "https://posthog.com",
+          "role": "Senior Software Engineer",
+          "location": "Remote / Unspecified",
+          "jd_chars": 453,
+          "researched_at": "2026-09-13T12:00:35.741Z",
+          "pages_used": [
+            "https://posthog.com/",
+            "https://posthog.com/handbook",
+            "https://posthog.com/careers",
+            "https://posthog.com/handbook/growth/sales/overview"
+          ]
+        },
+        "company_brief": {
+          "summary": "Target technology organization providing software products.",
+          "what_they_do": "Develops enterprise digital products and modern cloud software infrastructure.",
+          "sources": [
+            "https://posthog.com/",
+            "https://posthog.com/handbook",
+            "https://posthog.com/careers",
+            "https://posthog.com/handbook/growth/sales/overview"
+          ]
+        },
+        "role": {
+          "title": "Senior Software Engineer",
+          "seniority": "Senior",
+          "responsibilities": [
+            "Design, build, and maintain scalable software services",
+            "Collaborate with cross-functional teams to define requirements and deliverables",
+            "Participate in code reviews, testing, and technical documentation"
+          ],
+          "requirements": [
+            {
+              "id": "r1",
+              "text": "5+ years experience in Node.js / React software development",
+              "kind": "technical",
+              "priority": "must"
+            },
+            {
+              "id": "r2",
+              "text": "System architecture & database scalability",
+              "kind": "technical",
+              "priority": "must"
+            },
+            {
+              "id": "r3",
+              "text": "Cross-functional team collaboration & communication",
+              "kind": "behavioural",
+              "priority": "nice"
+            }
+          ]
+        },
+        "questions": [
+          {
+            "id": "q1",
+            "requirement_ids": [
+              "r1"
+            ],
+            "category": "technical",
+            "prompt": "Describe your experience building asynchronous backend services and managing event-driven workflows.",
+            "answer_outline": "Explain architectural design, async error handling, concurrency management, and performance monitoring.",
+            "difficulty": 2
+          },
+          {
+            "id": "q2",
+            "requirement_ids": [
+              "r2"
+            ],
+            "category": "system-design",
+            "prompt": "How would you design a high-throughput, fault-tolerant API service with database caching?",
+            "answer_outline": "Cover load balancing, Redis caching strategies, database indexing, and failover mechanisms.",
+            "difficulty": 3
+          },
+          {
+            "id": "q3",
+            "requirement_ids": [
+              "r3"
+            ],
+            "category": "behavioural",
+            "prompt": "Tell me about a time you had to balance technical debt against urgent product deadlines.",
+            "answer_outline": "Use STAR method: Describe Situation, Task, Action taken with stakeholders, and Result.",
+            "difficulty": 1
+          }
+        ],
+        "flashcards": [
+          {
+            "id": "q1",
+            "front": "Key Concept",
+            "back": "Key explanation and best practices.",
+            "requirement_ids": [
+              "r1"
+            ]
+          },
+          {
+            "id": "q2",
+            "front": "Key Concept",
+            "back": "Key explanation and best practices.",
+            "requirement_ids": [
+              "r2"
+            ]
+          },
+          {
+            "id": "q3",
+            "front": "Key Concept",
+            "back": "Key explanation and best practices.",
+            "requirement_ids": [
+              "r3"
+            ]
+          }
+        ],
+        "schedule": {
+          "days_available": 5,
+          "days": [
+            {
+              "day": 1,
+              "focus": "System-design Focus",
+              "question_ids": [
+                "q2"
+              ],
+              "minutes": 45
+            },
+            {
+              "day": 2,
+              "focus": "Core Technical Skills & Problem Solving",
+              "question_ids": [
+                "q1"
+              ],
+              "minutes": 30
+            },
+            {
+              "day": 3,
+              "focus": "General Preparation & Review",
+              "question_ids": [],
+              "minutes": 30
+            },
+            {
+              "day": 4,
+              "focus": "Behavioural & Leadership Experience",
+              "question_ids": [
+                "q3"
+              ],
+              "minutes": 20
+            },
+            {
+              "day": 5,
+              "focus": "General Preparation & Review",
+              "question_ids": [],
+              "minutes": 30
+            }
+          ]
+        },
+        "coverage": {
+          "uncovered_requirement_ids": [],
+          "passes": 1
+        }
+      },
+      "error": null
+    },
+    {
+      "id": "case-02",
+      "status": "ok",
+      "kit": {
+        "source": {
+          "company": "invalid-non-existent-company-domain-999.com",
+          "company_url": "https://invalid-non-existent-company-domain-999.com",
+          "role": "Senior Software Engineer",
+          "location": "Remote / Unspecified",
+          "jd_chars": 51,
+          "researched_at": "2026-09-13T12:00:37.493Z",
+          "pages_used": []
+        },
+        "company_brief": {
+          "summary": "No company website provided or site unreachable.",
+          "what_they_do": "Information not available from provided site URL.",
+          "sources": []
+        },
+        "role": {
+          "title": "Senior Software Engineer",
+          "seniority": "Senior",
+          "responsibilities": [
+            "Design, build, and maintain scalable software services",
+            "Collaborate with cross-functional teams to define requirements and deliverables",
+            "Participate in code reviews, testing, and technical documentation"
+          ],
+          "requirements": [
+            {
+              "id": "r1",
+              "text": "5+ years experience in Node.js / React software development",
+              "kind": "technical",
+              "priority": "must"
+            },
+            {
+              "id": "r2",
+              "text": "System architecture & database scalability",
+              "kind": "technical",
+              "priority": "must"
+            },
+            {
+              "id": "r3",
+              "text": "Cross-functional team collaboration & communication",
+              "kind": "behavioural",
+              "priority": "nice"
+            }
+          ]
+        },
+        "questions": [
+          {
+            "id": "q1",
+            "requirement_ids": [
+              "r1"
+            ],
+            "category": "technical",
+            "prompt": "Describe your experience building asynchronous backend services and managing event-driven workflows.",
+            "answer_outline": "Explain architectural design, async error handling, concurrency management, and performance monitoring.",
+            "difficulty": 2
+          },
+          {
+            "id": "q2",
+            "requirement_ids": [
+              "r2"
+            ],
+            "category": "system-design",
+            "prompt": "How would you design a high-throughput, fault-tolerant API service with database caching?",
+            "answer_outline": "Cover load balancing, Redis caching strategies, database indexing, and failover mechanisms.",
+            "difficulty": 3
+          },
+          {
+            "id": "q3",
+            "requirement_ids": [
+              "r3"
+            ],
+            "category": "behavioural",
+            "prompt": "Tell me about a time you had to balance technical debt against urgent product deadlines.",
+            "answer_outline": "Use STAR method: Describe Situation, Task, Action taken with stakeholders, and Result.",
+            "difficulty": 1
+          }
+        ],
+        "flashcards": [
+          {
+            "id": "q1",
+            "front": "Key Concept",
+            "back": "Key explanation and best practices.",
+            "requirement_ids": [
+              "r1"
+            ]
+          },
+          {
+            "id": "q2",
+            "front": "Key Concept",
+            "back": "Key explanation and best practices.",
+            "requirement_ids": [
+              "r2"
+            ]
+          },
+          {
+            "id": "q3",
+            "front": "Key Concept",
+            "back": "Key explanation and best practices.",
+            "requirement_ids": [
+              "r3"
+            ]
+          }
+        ],
+        "schedule": {
+          "days_available": 3,
+          "days": [
+            {
+              "day": 1,
+              "focus": "Technical Deep Dive & System Design",
+              "question_ids": [
+                "q2",
+                "q1"
+              ],
+              "minutes": 75
+            },
+            {
+              "day": 2,
+              "focus": "Behavioural & Leadership Experience",
+              "question_ids": [
+                "q3"
+              ],
+              "minutes": 20
+            },
+            {
+              "day": 3,
+              "focus": "General Preparation & Review",
+              "question_ids": [],
+              "minutes": 30
+            }
+          ]
+        },
+        "coverage": {
+          "uncovered_requirement_ids": [],
+          "passes": 1
+        }
+      },
+      "error": null
+    }
+  ]
+}
