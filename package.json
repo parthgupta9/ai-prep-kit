@@ -4,6 +4,7 @@
   "description": "Full-Stack AI Interview Prep Kit web app & batch evaluation pipeline",
   "main": "backend/src/server.js",
   "scripts": {
+    "start": "node backend/src/server.js",
     "evaluate": "node backend/src/cli/evaluate.js",
     "start:backend": "cd backend && npm start",
     "dev:backend": "cd backend && npm run dev",

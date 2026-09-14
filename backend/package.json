@@ -5,7 +5,7 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "dev": "nodemon src/server.js",
+    "dev": "node src/server.js",
     "test": "jest --detectOpenHandles --forceExit"
   },
   "keywords": [],
@@ -22,11 +22,11 @@
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^9.10.0",
+    "nodemon": "^3.1.14",
     "zod": "^3.24.2"
   },
   "devDependencies": {
     "jest": "^29.7.0",
-    "nodemon": "^3.1.14",
     "supertest": "^7.0.0"
   }
 }
