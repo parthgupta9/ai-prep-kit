@@ -34,7 +34,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
       }
       onClose();
     } catch (err: any) {
-      setError(err.message || 'Authentication failed. Please try again.');
+      console.error('[Auth Error]', err);
+      setError(err.message || 'Authentication failed. Please check network/backend connection.');
     } finally {
       setLoading(false);
     }
@@ -46,6 +47,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
         
         {/* Close Button */}
         <button
+          type="button"
           onClick={onClose}
           className="absolute top-4 right-4 p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
         >
@@ -55,6 +57,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
         {/* Tab Header */}
         <div className="flex border-b border-slate-800 mb-6">
           <button
+            type="button"
             onClick={() => { setIsLogin(true); setError(''); }}
             className={`pb-3 px-4 font-semibold text-sm transition border-b-2 ${
               isLogin
@@ -65,6 +68,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess
             Sign In
           </button>
           <button
+            type="button"
             onClick={() => { setIsLogin(false); setError(''); }}
             className={`pb-3 px-4 font-semibold text-sm transition border-b-2 ${
               !isLogin

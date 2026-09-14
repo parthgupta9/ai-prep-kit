@@ -194,9 +194,13 @@ export function App() {
         )}
       </main>
 
-      <footer className="border-t border-slate-900 py-6 text-center text-xs text-slate-500">
-        <p>Trao Full-Stack Engineering Assessment (FS-AI-INTERVIEW-01)</p>
-      </footer>
+      {/* Render Auth Modal */}
+      <AuthModal
+        isOpen={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        onSuccess={handleAuthSuccess}
+      />
+
     </div>
   );
 }

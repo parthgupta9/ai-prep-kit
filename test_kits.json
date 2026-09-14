@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "generated_at": "2026-09-13T12:00:35.739Z",
+  "generated_at": "2026-09-13T16:55:13.536Z",
   "kits": [
     {
       "id": "case-01",
@@ -12,23 +12,13 @@
           "role": "Senior Software Engineer",
           "location": "Remote / Unspecified",
           "jd_chars": 453,
-          "researched_at": "2026-09-13T12:00:35.741Z",
-          "pages_used": [
-            "https://posthog.com/",
-            "https://posthog.com/handbook",
-            "https://posthog.com/careers",
-            "https://posthog.com/handbook/growth/sales/overview"
-          ]
+          "researched_at": "2026-09-13T16:55:13.545Z",
+          "pages_used": []
         },
         "company_brief": {
-          "summary": "Target technology organization providing software products.",
-          "what_they_do": "Develops enterprise digital products and modern cloud software infrastructure.",
-          "sources": [
-            "https://posthog.com/",
-            "https://posthog.com/handbook",
-            "https://posthog.com/careers",
-            "https://posthog.com/handbook/growth/sales/overview"
-          ]
+          "summary": "No company website provided or site unreachable.",
+          "what_they_do": "Information not available from provided site URL.",
+          "sources": []
         },
         "role": {
           "title": "Senior Software Engineer",
@@ -175,7 +165,7 @@
           "role": "Senior Software Engineer",
           "location": "Remote / Unspecified",
           "jd_chars": 51,
-          "researched_at": "2026-09-13T12:00:37.493Z",
+          "researched_at": "2026-09-13T16:55:19.629Z",
           "pages_used": []
         },
         "company_brief": {

@@ -8,10 +8,10 @@ const { authMiddleware } = require('../middleware/authMiddleware');
 const { generateKit } = require('../services/pipeline');
 const { callLLM } = require('../services/llm');
 const { allocateSchedule } = require('../services/scheduleAllocator');
+const { isMongoConnected } = require('../config/db');
 
 const router = express.Router();
 
-// In-memory kits fallback if MongoDB is offline
 const inMemoryKits = new Map();
 
 // Generate Kit (Single or Batch)
@@ -19,7 +19,6 @@ router.post('/', authMiddleware, async (req, res) => {
   try {
     const { jd, company_url, days, batch } = req.body;
 
-    // Handle Batch Creation if batch array provided
     if (Array.isArray(batch) && batch.length > 0) {
       const results = [];
       for (const item of batch) {
@@ -32,13 +31,24 @@ router.post('/', authMiddleware, async (req, res) => {
           });
 
           let savedKit = null;
-          try {
-            savedKit = await Kit.create({
-              userId: req.user.userId,
-              input: { jd: item.jd, company_url: item.company_url, days: item.days || 5 },
-              kitData
-            });
-          } catch (dbErr) {
+          if (isMongoConnected()) {
+            try {
+              savedKit = await Kit.create({
+                userId: req.user.userId,
+                input: { jd: item.jd, company_url: item.company_url, days: item.days || 5 },
+                kitData
+              });
+            } catch (dbErr) {
+              savedKit = {
+                _id: 'mem_kit_' + Date.now() + Math.random().toString(36).substring(2, 7),
+                userId: req.user.userId,
+                input: { jd: item.jd, company_url: item.company_url, days: item.days || 5 },
+                kitData,
+                createdAt: new Date()
+              };
+              inMemoryKits.set(savedKit._id.toString(), savedKit);
+            }
+          } else {
             savedKit = {
               _id: 'mem_kit_' + Date.now() + Math.random().toString(36).substring(2, 7),
               userId: req.user.userId,
@@ -48,6 +58,7 @@ router.post('/', authMiddleware, async (req, res) => {
             };
             inMemoryKits.set(savedKit._id.toString(), savedKit);
           }
+
           results.push({ success: true, kitId: savedKit._id, kit: kitData });
         } catch (e) {
           results.push({ success: false, error: e.message, item });
@@ -56,7 +67,6 @@ router.post('/', authMiddleware, async (req, res) => {
       return res.status(201).json({ message: 'Batch kits created', results });
     }
 
-    // Single Kit Generation
     if (!jd || jd.trim().length < 5) {
       return res.status(400).json({ error: 'Please provide a valid Job Description text.' });
     }
@@ -69,13 +79,24 @@ router.post('/', authMiddleware, async (req, res) => {
     });
 
     let savedKit = null;
-    try {
-      savedKit = await Kit.create({
-        userId: req.user.userId,
-        input: { jd, company_url, days: Number(days) || 5 },
-        kitData
-      });
-    } catch (dbErr) {
+    if (isMongoConnected()) {
+      try {
+        savedKit = await Kit.create({
+          userId: req.user.userId,
+          input: { jd, company_url, days: Number(days) || 5 },
+          kitData
+        });
+      } catch (dbErr) {
+        savedKit = {
+          _id: 'mem_kit_' + Date.now(),
+          userId: req.user.userId,
+          input: { jd, company_url, days: Number(days) || 5 },
+          kitData,
+          createdAt: new Date()
+        };
+        inMemoryKits.set(savedKit._id.toString(), savedKit);
+      }
+    } else {
       savedKit = {
         _id: 'mem_kit_' + Date.now(),
         userId: req.user.userId,
@@ -101,9 +122,13 @@ router.post('/', authMiddleware, async (req, res) => {
 router.get('/', authMiddleware, async (req, res) => {
   try {
     let kits = [];
-    try {
-      kits = await Kit.find({ userId: req.user.userId }).sort({ createdAt: -1 });
-    } catch (e) {
+    if (isMongoConnected()) {
+      try {
+        kits = await Kit.find({ userId: req.user.userId }).sort({ createdAt: -1 });
+      } catch (e) {
+        kits = Array.from(inMemoryKits.values()).filter(k => k.userId === req.user.userId);
+      }
+    } else {
       kits = Array.from(inMemoryKits.values()).filter(k => k.userId === req.user.userId);
     }
     res.json({ kits });
@@ -116,9 +141,13 @@ router.get('/', authMiddleware, async (req, res) => {
 router.get('/:id', authMiddleware, async (req, res) => {
   try {
     let kitDoc = null;
-    try {
-      kitDoc = await Kit.findOne({ _id: req.params.id, userId: req.user.userId });
-    } catch (e) {
+    if (isMongoConnected()) {
+      try {
+        kitDoc = await Kit.findOne({ _id: req.params.id, userId: req.user.userId });
+      } catch (e) {
+        kitDoc = inMemoryKits.get(req.params.id);
+      }
+    } else {
       kitDoc = inMemoryKits.get(req.params.id);
     }
 
@@ -141,13 +170,22 @@ router.put('/:id', authMiddleware, async (req, res) => {
     }
 
     let kitDoc = null;
-    try {
-      kitDoc = await Kit.findOneAndUpdate(
-        { _id: req.params.id, userId: req.user.userId },
-        { kitData, practiceState, updatedAt: new Date() },
-        { new: true }
-      );
-    } catch (e) {
+    if (isMongoConnected()) {
+      try {
+        kitDoc = await Kit.findOneAndUpdate(
+          { _id: req.params.id, userId: req.user.userId },
+          { kitData, practiceState, updatedAt: new Date() },
+          { new: true }
+        );
+      } catch (e) {
+        kitDoc = inMemoryKits.get(req.params.id);
+        if (kitDoc && kitDoc.userId === req.user.userId) {
+          kitDoc.kitData = kitData;
+          if (practiceState) kitDoc.practiceState = practiceState;
+          kitDoc.updatedAt = new Date();
+        }
+      }
+    } else {
       kitDoc = inMemoryKits.get(req.params.id);
       if (kitDoc && kitDoc.userId === req.user.userId) {
         kitDoc.kitData = kitData;
@@ -169,15 +207,19 @@ router.put('/:id', authMiddleware, async (req, res) => {
 // Regenerate single section without discarding edits elsewhere
 router.post('/:id/regenerate-section', authMiddleware, async (req, res) => {
   try {
-    const { section, categoryName } = req.body; // section: 'company_brief' | 'category' | 'schedule'
+    const { section, categoryName } = req.body;
     if (!section) {
       return res.status(400).json({ error: 'Section parameter is required.' });
     }
 
     let kitDoc = null;
-    try {
-      kitDoc = await Kit.findOne({ _id: req.params.id, userId: req.user.userId });
-    } catch (e) {
+    if (isMongoConnected()) {
+      try {
+        kitDoc = await Kit.findOne({ _id: req.params.id, userId: req.user.userId });
+      } catch (e) {
+        kitDoc = inMemoryKits.get(req.params.id);
+      }
+    } else {
       kitDoc = inMemoryKits.get(req.params.id);
     }
 
@@ -198,7 +240,6 @@ Respond strictly in JSON: { "summary": "...", "what_they_do": "..." }
       currentKit.company_brief.what_they_do = freshBrief.what_they_do || currentKit.company_brief.what_they_do;
     } else if (section === 'category' && categoryName) {
       const targetCategory = categoryName.toLowerCase();
-      // Identify questions in this category that are NOT pinned/user-edited
       const existingReqs = currentKit.role?.requirements || [];
       const catPrompt = `
 Generate 2 fresh interview questions for category "${targetCategory}" based on:
@@ -211,10 +252,8 @@ Respond strictly in JSON array format:
 `;
       const freshQuestions = await callLLM(catPrompt);
       if (Array.isArray(freshQuestions)) {
-        // Keep questions that were manually edited or pinned or belong to other categories
         const uneditedCatIndex = currentKit.questions.findIndex(q => q.category === targetCategory && !q.isPinned && !q.isEdited);
         if (uneditedCatIndex !== -1) {
-          // Replace unedited question with newly generated
           currentKit.questions[uneditedCatIndex] = {
             id: `q_regen_${Date.now()}`,
             requirement_ids: freshQuestions[0].requirement_ids || [existingReqs[0]?.id || 'r1'],
@@ -224,7 +263,6 @@ Respond strictly in JSON array format:
             difficulty: Number(freshQuestions[0].difficulty) || 2
           };
         } else {
-          // Append new question if none available to replace
           currentKit.questions.push({
             id: `q_regen_${Date.now()}`,
             requirement_ids: freshQuestions[0].requirement_ids || [existingReqs[0]?.id || 'r1'],
@@ -240,10 +278,13 @@ Respond strictly in JSON array format:
       currentKit.schedule = allocateSchedule(currentKit.questions, currentKit.role?.requirements || [], daysAvail);
     }
 
-    // Save updated kit
-    try {
-      await Kit.updateOne({ _id: kitDoc._id }, { kitData: currentKit, updatedAt: new Date() });
-    } catch (e) {
+    if (isMongoConnected()) {
+      try {
+        await Kit.updateOne({ _id: kitDoc._id }, { kitData: currentKit, updatedAt: new Date() });
+      } catch (e) {
+        kitDoc.kitData = currentKit;
+      }
+    } else {
       kitDoc.kitData = currentKit;
     }
 
@@ -262,9 +303,13 @@ router.post('/:id/mock-interview', authMiddleware, async (req, res) => {
     }
 
     let kitDoc = null;
-    try {
-      kitDoc = await Kit.findOne({ _id: req.params.id, userId: req.user.userId });
-    } catch (e) {
+    if (isMongoConnected()) {
+      try {
+        kitDoc = await Kit.findOne({ _id: req.params.id, userId: req.user.userId });
+      } catch (e) {
+        kitDoc = inMemoryKits.get(req.params.id);
+      }
+    } else {
       kitDoc = inMemoryKits.get(req.params.id);
     }
 

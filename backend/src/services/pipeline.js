@@ -17,6 +17,25 @@ const { allocateSchedule } = require('./scheduleAllocator');
 const { validateKit } = require('./validator');
 
 /**
+ * Helper to safely extract an array from LLM JSON response
+ * handles both direct array [...] and object wrapper { questions: [...] }
+ */
+function extractArrayFromLLMResponse(llmRes) {
+  if (Array.isArray(llmRes)) {
+    return llmRes;
+  }
+  if (llmRes && typeof llmRes === 'object') {
+    // Search for array property (questions, flashcards, items, data, or first array value)
+    for (const key of Object.keys(llmRes)) {
+      if (Array.isArray(llmRes[key])) {
+        return llmRes[key];
+      }
+    }
+  }
+  return [];
+}
+
+/**
  * Executes the full prep kit research & generation pipeline for a given case.
  * @param {Object} caseParams - { jd: string, company_url: string, days: number, allowLocal?: boolean }
  * @returns {Promise<Object>} Appendix A Kit object
@@ -142,30 +161,46 @@ Instructions:
 - answer_outline: A clear, structured outline of what a strong candidate answer should include.
 - difficulty: Integer from 1 (easy) to 3 (hard).
 
-Respond strictly in JSON array format:
-[
-  {
-    "id": "q1",
-    "requirement_ids": ["r1"],
-    "category": "technical",
-    "prompt": "...",
-    "answer_outline": "...",
-    "difficulty": 2
-  }
-]
+Respond strictly in JSON format with a top-level "questions" array:
+{
+  "questions": [
+    {
+      "id": "q1",
+      "requirement_ids": ["r1"],
+      "category": "technical",
+      "prompt": "...",
+      "answer_outline": "...",
+      "difficulty": 2
+    }
+  ]
+}
 `;
 
   let rawQuestions = await callLLM(questionsPrompt);
-  if (!Array.isArray(rawQuestions)) rawQuestions = [];
+  const parsedQuestionsArray = extractArrayFromLLMResponse(rawQuestions);
 
-  let questions = rawQuestions.map((q, idx) => ({
+  let questions = parsedQuestionsArray.map((q, idx) => ({
     id: q.id || `q${idx + 1}`,
-    requirement_ids: Array.isArray(q.requirement_ids) ? q.requirement_ids : [role.requirements[0].id],
+    requirement_ids: Array.isArray(q.requirement_ids) && q.requirement_ids.length > 0
+      ? q.requirement_ids
+      : [role.requirements[idx % role.requirements.length]?.id || 'r1'],
     category: ['technical', 'behavioural', 'system-design', 'company-fit'].includes(q.category) ? q.category : 'technical',
     prompt: q.prompt || 'Explain your technical approach to this scenario.',
     answer_outline: q.answer_outline || 'Cover key concepts, trade-offs, and practical examples.',
     difficulty: Math.max(1, Math.min(Number(q.difficulty) || 2, 3))
   }));
+
+  // Fallback check: ensure questions array is not empty
+  if (questions.length === 0) {
+    questions = role.requirements.map((r, idx) => ({
+      id: `q${idx + 1}`,
+      requirement_ids: [r.id],
+      category: r.kind === 'behavioural' ? 'behavioural' : 'technical',
+      prompt: `Describe your hands-on experience and approach regarding: ${r.text}`,
+      answer_outline: 'Explain architectural design, practical implementations, trade-offs, and lessons learned.',
+      difficulty: r.priority === 'must' ? 2 : 1
+    }));
+  }
 
   // 5. Generate Flashcards
   const flashcardPrompt = `
@@ -179,21 +214,34 @@ Instructions:
 - back: The concise explanation, answer, or key points on the card back.
 - requirement_ids: Array of requirement IDs covered (e.g. ["r1"]).
 
-Respond strictly in JSON array format:
-[
-  { "id": "f1", "front": "...", "back": "...", "requirement_ids": ["r1"] }
-]
+Respond strictly in JSON format with a top-level "flashcards" array:
+{
+  "flashcards": [
+    { "id": "f1", "front": "...", "back": "...", "requirement_ids": ["r1"] }
+  ]
+}
 `;
 
   let rawFlashcards = await callLLM(flashcardPrompt);
-  if (!Array.isArray(rawFlashcards)) rawFlashcards = [];
+  const parsedFlashcardsArray = extractArrayFromLLMResponse(rawFlashcards);
 
-  let flashcards = rawFlashcards.map((f, idx) => ({
+  let flashcards = parsedFlashcardsArray.map((f, idx) => ({
     id: f.id || `f${idx + 1}`,
     front: f.front || 'Key Concept',
     back: f.back || 'Key explanation and best practices.',
-    requirement_ids: Array.isArray(f.requirement_ids) ? f.requirement_ids : [role.requirements[0].id]
+    requirement_ids: Array.isArray(f.requirement_ids) && f.requirement_ids.length > 0
+      ? f.requirement_ids
+      : [role.requirements[idx % role.requirements.length]?.id || 'r1']
   }));
+
+  if (flashcards.length === 0) {
+    flashcards = questions.slice(0, 4).map((q, idx) => ({
+      id: `f${idx + 1}`,
+      front: q.prompt,
+      back: q.answer_outline,
+      requirement_ids: q.requirement_ids
+    }));
+  }
 
   // 6. DETERMINISTIC COVERAGE CHECK & SECOND PASS LOOP
   let passesCount = 1;
@@ -219,11 +267,13 @@ Instructions:
 - answer_outline: Ideal answer outline.
 - difficulty: 1 to 3 integer.
 
-Respond strictly in JSON array format.
+Respond strictly in JSON format with a "questions" array.
 `;
 
-    const secondPassQuestions = await callLLM(secondPassPrompt);
-    if (Array.isArray(secondPassQuestions)) {
+    const secondPassRes = await callLLM(secondPassPrompt);
+    const secondPassQuestions = extractArrayFromLLMResponse(secondPassRes);
+
+    if (secondPassQuestions.length > 0) {
       secondPassQuestions.forEach((q, idx) => {
         questions.push({
           id: q.id || `q${questions.length + 1}`,
@@ -238,14 +288,12 @@ Respond strictly in JSON array format.
       });
     }
 
-    // Re-check coverage after pass 2
     coverageResult = checkCoverage(role.requirements, questions);
   }
 
   // 7. DETERMINISTIC PREPARATION SCHEDULE ALLOCATION
   const schedule = allocateSchedule(questions, role.requirements, sanitizedDays);
 
-  // Derive source metadata
   const companyNameFromUrl = company_url ? company_url.replace(/https?:\/\//, '').split('/')[0] : 'Unknown';
 
   const kit = {
@@ -269,7 +317,6 @@ Respond strictly in JSON array format.
     }
   };
 
-  // 8. Validate against Appendix A schema
   const validation = validateKit(kit);
   if (!validation.valid) {
     console.warn('[Kit Validation Warning]: Kit output had schema warnings:', validation.errors);

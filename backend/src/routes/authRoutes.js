@@ -7,10 +7,11 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const { authMiddleware, JWT_SECRET } = require('../middleware/authMiddleware');
+const { isMongoConnected } = require('../config/db');
 
 const router = express.Router();
 
-// Mock in-memory user database if MongoDB connection is offline
+// Mock in-memory user database if MongoDB is offline
 const inMemoryUsers = new Map();
 
 // Register
@@ -23,11 +24,14 @@ router.post('/register', async (req, res) => {
 
     const lowerEmail = email.toLowerCase().trim();
 
-    // Check if Mongo DB is available
     let existingUser = null;
-    try {
-      existingUser = await User.findOne({ email: lowerEmail });
-    } catch (e) {
+    if (isMongoConnected()) {
+      try {
+        existingUser = await User.findOne({ email: lowerEmail });
+      } catch (e) {
+        existingUser = inMemoryUsers.get(lowerEmail);
+      }
+    } else {
       existingUser = inMemoryUsers.get(lowerEmail);
     }
 
@@ -38,13 +42,23 @@ router.post('/register', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     let newUser = null;
-    try {
-      newUser = await User.create({
-        email: lowerEmail,
-        password: hashedPassword,
-        name: name || lowerEmail.split('@')[0]
-      });
-    } catch (e) {
+    if (isMongoConnected()) {
+      try {
+        newUser = await User.create({
+          email: lowerEmail,
+          password: hashedPassword,
+          name: name || lowerEmail.split('@')[0]
+        });
+      } catch (e) {
+        newUser = {
+          _id: 'mem_usr_' + Date.now(),
+          email: lowerEmail,
+          password: hashedPassword,
+          name: name || lowerEmail.split('@')[0]
+        };
+        inMemoryUsers.set(lowerEmail, newUser);
+      }
+    } else {
       newUser = {
         _id: 'mem_usr_' + Date.now(),
         email: lowerEmail,
@@ -77,9 +91,13 @@ router.post('/login', async (req, res) => {
     const lowerEmail = email.toLowerCase().trim();
 
     let user = null;
-    try {
-      user = await User.findOne({ email: lowerEmail });
-    } catch (e) {
+    if (isMongoConnected()) {
+      try {
+        user = await User.findOne({ email: lowerEmail });
+      } catch (e) {
+        user = inMemoryUsers.get(lowerEmail);
+      }
+    } else {
       user = inMemoryUsers.get(lowerEmail);
     }
 

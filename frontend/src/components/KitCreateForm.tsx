@@ -47,6 +47,8 @@ export const KitCreateForm: React.FC<KitCreateFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Enforce authentication modal for signed-out visitors as specified in PDF section 1
     if (!isAuthenticated) {
       onOpenAuth();
       return;
@@ -87,7 +89,7 @@ export const KitCreateForm: React.FC<KitCreateFormProps> = ({
       }
     } catch (err: any) {
       clearInterval(interval);
-      setError(err.message || 'Generation failed. Please try again.');
+      setError(err.message || 'Generation failed. Make sure the backend server (npm run dev:backend) is running.');
     } finally {
       setGenerating(false);
     }
